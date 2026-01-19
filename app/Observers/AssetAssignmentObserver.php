@@ -2,8 +2,8 @@
 
 namespace App\Observers;
 
-use App\Models\AssetAssignment;
 use App\Models\Asset;
+use App\Models\AssetAssignment;
 use App\Models\AssetHistory;
 
 class AssetAssignmentObserver
@@ -77,21 +77,5 @@ class AssetAssignmentObserver
                 'action_date' => now(),
             ]);
         }
-    }
-
-    /**
-     * Handle the AssetAssignment "restored" event.
-     */
-    public function restored(AssetAssignment $assetAssignment): void
-    {
-        //
-    }
-
-    /**
-     * Handle the AssetAssignment "force deleted" event.
-     */
-    public function forceDeleted(AssetAssignment $assetAssignment): void
-    {
-        //
     }
 }
