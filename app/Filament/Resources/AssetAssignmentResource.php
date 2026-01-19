@@ -13,7 +13,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Auth;   
+use Illuminate\Support\Facades\Auth;
 
 class AssetAssignmentResource extends Resource
 {
@@ -54,9 +54,18 @@ class AssetAssignmentResource extends Resource
 
                         Forms\Components\Select::make('asset_id')
                             ->label('Asset')
-                            ->relationship('asset', 'name', function ($query) {
-                                // Only show available assets (not currently assigned)
-                                return $query->where('status', 'available');
+                            // Update the relationship query below:
+                            ->relationship('asset', 'name', function (Builder $query, ?AssetAssignment $record) {
+                                // We use a closure to group the WHERE clauses safely
+                                return $query->where(function ($q) use ($record) {
+                                    // 1. Always include available assets
+                                    $q->where('status', 'available');
+
+                                    // 2. If we are editing a record, ALSO include the currently assigned asset
+                                    if ($record) {
+                                        $q->orWhere('id', $record->asset_id);
+                                    }
+                                });
                             })
                             ->getOptionLabelFromRecordUsing(fn($record) => "{$record->name} ({$record->asset_tag})")
                             ->searchable(['name', 'asset_tag'])
@@ -145,7 +154,10 @@ class AssetAssignmentResource extends Resource
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Status')
                     ->boolean()
-                    ->getStateUsing(fn($record) => $record->return_date === null)
+                    ->getStateUsing(function ($record) {
+                        // Active if date is blank OR date is in the future
+                        return $record->return_date === null || \Carbon\Carbon::parse($record->return_date)->isFuture();
+                    })
                     ->trueIcon('heroicon-o-check-circle')
                     ->falseIcon('heroicon-o-x-circle')
                     ->trueColor('success')

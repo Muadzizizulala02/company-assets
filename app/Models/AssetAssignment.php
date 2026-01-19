@@ -54,16 +54,34 @@ class AssetAssignment extends Model
     {
         parent::boot();
 
+        // 1. Validation: Prevent double booking
         static::creating(function ($assignment) {
-            // Check if asset is already assigned to someone else
             $existingAssignment = self::where('asset_id', $assignment->asset_id)
                 ->whereNull('return_date')
                 ->first();
 
             if ($existingAssignment) {
-                throw new \Exception("This asset is already assigned to {$existingAssignment->employee->first_name} {$existingAssignment->employee->last_name}. Please return it first.");
+                throw new \Exception("Asset already assigned to {$existingAssignment->employee->first_name}.");
             }
+        });
 
+        // 2. Auto-Update: When Created -> Mark Asset as Assigned
+        static::created(function ($assignment) {
+            $assignment->asset->update(['status' => 'assigned']);
+        });
+
+        // 3. Auto-Update: When Updated -> Check Date to determine Status
+        static::updated(function ($assignment) {
+            $asset = $assignment->asset;
+
+            // IF return_date exists AND it is today or in the past
+            if ($assignment->return_date && $assignment->return_date->lte(now())) {
+                $asset->update(['status' => 'available']);
+            }
+            // ELSE (Return date is null OR in the future)
+            else {
+                $asset->update(['status' => 'assigned']);
+            }
         });
     }
 }
