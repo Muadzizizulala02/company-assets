@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Filament\Panel;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class User extends Authenticatable
 {
@@ -20,6 +21,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
+        'user_id',
         'name',
         'email',
         'password',
@@ -56,4 +58,9 @@ class User extends Authenticatable
         // Allow users with super_admin role or panel_user permission
         return $this->hasRole('super_admin') || $this->can('access_admin_panel');
     }
+
+    public function user(): BelongsTo
+{
+    return $this->belongsTo(User::class);
+}
 }
