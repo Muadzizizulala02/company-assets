@@ -7,15 +7,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\AssetAssignment;
 use App\Models\AssetHistory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 
 
 class Employee extends Model
 {
     use HasFactory;
-    
+
     // Lists which fields can be filled using create() or update() methods
     // Protects against hackers injecting unwanted data
     protected $fillable = [
+        'user_id',
         'employee_id',
         'first_name',
         'last_name',
@@ -57,4 +60,10 @@ class Employee extends Model
             ->with('asset')
             ->get();
     }
+
+    // Relationship: Employee belongs to one user account
+    public function user(): BelongsTo
+{
+    return $this->belongsTo(User::class);
+}
 }

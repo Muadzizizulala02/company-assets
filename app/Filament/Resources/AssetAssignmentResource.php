@@ -12,6 +12,9 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;   
+
 class AssetAssignmentResource extends Resource
 {
     protected static ?string $model = AssetAssignment::class;
@@ -84,7 +87,7 @@ class AssetAssignmentResource extends Resource
                             ->label('Return Date')
                             ->native(false)
                             ->displayFormat('d/m/Y')
-                            ->minDate(fn ($get) => $get('assigned_date'))
+                            ->minDate(fn($get) => $get('assigned_date'))
 
                             ->helperText('Leave empty if asset is still with employee'),
 
@@ -180,6 +183,25 @@ class AssetAssignmentResource extends Resource
                 ]),
             ])
             ->defaultSort('assigned_date', 'desc');
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        // Check if user exists AND has the role
+        if ($user && $user->hasRole('employee')) {
+
+            $query->whereHas('employee', function ($q) use ($user) {
+                // Now the editor knows $user has an 'id'
+                $q->where('user_id', $user->id);
+            });
+        }
+
+        return $query;
     }
 
     public static function getRelations(): array
