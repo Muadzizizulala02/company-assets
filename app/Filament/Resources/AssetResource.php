@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use App\Filament\Resources\AssetResource\RelationManagers;
 
 class AssetResource extends Resource
 {
@@ -206,6 +207,7 @@ class AssetResource extends Resource
     {
         return [
             //
+            RelationManagers\AssetHistoryRelationManager::class,
         ];
     }
 
